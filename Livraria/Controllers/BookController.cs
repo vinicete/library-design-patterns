@@ -53,5 +53,75 @@ namespace Livraria.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpPost("{bookId}/subscribe/{customerId}")]
+        public async Task<IActionResult> Subscribe(int bookId, int customerId)
+        {
+            var book = await _context.Books.FindAsync(bookId);
+            if (book == null) return NotFound("Livro não encontrado.");
+
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer == null) return NotFound("Cliente não encontrado.");
+
+            var existingSubscription = await _context.BookSubscriptions
+                .FirstOrDefaultAsync(bs => bs.BookId == bookId && bs.CustomerId == customerId);
+
+            if (existingSubscription != null)
+            {
+                return BadRequest($"Cliente {customer.Name} já está inscrito para receber notificações do livro '{book.Title}'.");
+            }
+            var subscription = new BookSubscription
+            {
+                BookId = bookId,
+                CustomerId = customerId,
+                SubscribedAt = DateTime.Now
+            };
+
+            _context.BookSubscriptions.Add(subscription);
+            await _context.SaveChangesAsync();
+
+            return Ok($"Cliente {customer.Name} inscrito para receber notificações do livro '{book.Title}'.");
+        }
+
+        [HttpPost("{bookId}/unsubscribe/{customerId}")]
+        public async Task<IActionResult> Unsubscribe(int bookId, int customerId)
+        {
+            var book = await _context.Books.FindAsync(bookId);
+            if (book == null) return NotFound("Livro não encontrado.");
+
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer == null) return NotFound("Cliente não encontrado.");
+
+            var subscription = await _context.BookSubscriptions
+                .FirstOrDefaultAsync(bs => bs.BookId == bookId && bs.CustomerId == customerId);
+
+            if (subscription == null)
+            {
+                return BadRequest($"Cliente {customer.Name} não está inscrito para receber notificações do livro '{book.Title}'.");
+            }
+
+            _context.BookSubscriptions.Remove(subscription);
+            await _context.SaveChangesAsync();
+
+            return Ok($"Cliente {customer.Name} removido das notificações do livro '{book.Title}'.");
+        }
+
+        [HttpPost("{bookId}/test-notification")]
+        public async Task<IActionResult> TestNotification(int bookId)
+        {
+            var book = await _context.Books.FindAsync(bookId);
+            if (book == null) return NotFound("Livro não encontrado.");
+
+            var originalQuantity = book.Quantity;
+            book.Quantity = 0;
+            await _context.SaveChangesAsync();
+            
+            book.Quantity = originalQuantity;
+            await _context.SaveChangesAsync();
+            
+            book.Notify(_context);
+
+            return Ok($"Notificação de teste enviada para os inscritos no livro '{book.Title}'.");
+        }
     }
 }

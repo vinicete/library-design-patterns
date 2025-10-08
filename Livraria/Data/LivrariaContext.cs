@@ -12,11 +12,31 @@ namespace Livraria.Data
         public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Bookstore> Bookstores => Set<Bookstore>();
         public DbSet<TransactionHistory> TransactionHistories => Set<TransactionHistory>();
+        public DbSet<BookSubscription> BookSubscriptions => Set<BookSubscription>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<BookSubscription>()
+                .HasKey(bs => bs.Id);
+
+            modelBuilder.Entity<BookSubscription>()
+                .HasOne(bs => bs.Book)
+                .WithMany(b => b.Subscriptions)
+                .HasForeignKey(bs => bs.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookSubscription>()
+                .HasOne(bs => bs.Customer)
+                .WithMany(c => c.Subscriptions)
+                .HasForeignKey(bs => bs.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BookSubscription>()
+                .HasIndex(bs => new { bs.BookId, bs.CustomerId })
+                .IsUnique();
 
             modelBuilder.Entity<Book>().HasData(
                 new Book { Id = 1, Title = "Clean Code", Author = "Robert C. Martin", Price = 99.90, Weight = 0.8, Quantity = 10 },

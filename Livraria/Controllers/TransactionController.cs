@@ -26,8 +26,19 @@ namespace Livraria.Controllers
         [HttpPost("supplier")]
         public IActionResult BuyFromSupplier(int bookId, int quantidade)
         {
+            // Get the book before transaction to check if it was out of stock
+            var book = _context.Books.Find(bookId);
+            bool wasOutOfStock = book?.Quantity == 0;
+            
             var transacao = new SupplierTransaction(_context, bookId, quantidade);
             transacao.Execute();
+            
+            // If book was out of stock and now has inventory, notify subscribers
+            if (wasOutOfStock && book != null && book.Quantity > 0)
+            {
+                book.Notify(_context);
+            }
+            
             return Ok("Compra do fornecedor registrada com sucesso!");
         }
 
