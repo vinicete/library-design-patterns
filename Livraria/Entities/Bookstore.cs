@@ -1,16 +1,11 @@
-﻿using Livraria.Contracts;
+﻿using System.Collections.Generic;
 
 namespace Livraria.Entities
 {
-    public class Bookstore 
+    public class Bookstore
     {
-        private List<Book> books;
-        
-
-        public Bookstore()
-        {
-            books = new List<Book>();
-        }
-        
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public List<Book> Books { get; set; } = new();
     }
 }

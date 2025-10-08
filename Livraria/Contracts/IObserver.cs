@@ -2,6 +2,6 @@
 {
     public interface IObserver
     {
-        public void Update(string message);
+        public void Update(ISubject subject);
     }
 }
