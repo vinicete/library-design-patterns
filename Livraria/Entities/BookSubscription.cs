@@ -9,7 +9,6 @@ namespace Livraria.Entities
         public int CustomerId { get; set; }
         public DateTime SubscribedAt { get; set; } = DateTime.Now;
         
-        // Navigation properties
         [JsonIgnore]
         public Book Book { get; set; } = null!;
         [JsonIgnore]

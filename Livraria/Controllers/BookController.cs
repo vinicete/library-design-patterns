@@ -63,7 +63,6 @@ namespace Livraria.Controllers
             var customer = await _context.Customers.FindAsync(customerId);
             if (customer == null) return NotFound("Cliente não encontrado.");
 
-            // Check if subscription already exists
             var existingSubscription = await _context.BookSubscriptions
                 .FirstOrDefaultAsync(bs => bs.BookId == bookId && bs.CustomerId == customerId);
 
@@ -71,8 +70,6 @@ namespace Livraria.Controllers
             {
                 return BadRequest($"Cliente {customer.Name} já está inscrito para receber notificações do livro '{book.Title}'.");
             }
-
-            // Create new subscription
             var subscription = new BookSubscription
             {
                 BookId = bookId,
@@ -95,7 +92,6 @@ namespace Livraria.Controllers
             var customer = await _context.Customers.FindAsync(customerId);
             if (customer == null) return NotFound("Cliente não encontrado.");
 
-            // Find and remove subscription
             var subscription = await _context.BookSubscriptions
                 .FirstOrDefaultAsync(bs => bs.BookId == bookId && bs.CustomerId == customerId);
 
@@ -116,15 +112,13 @@ namespace Livraria.Controllers
             var book = await _context.Books.FindAsync(bookId);
             if (book == null) return NotFound("Livro não encontrado.");
 
-            // Simula o livro voltando ao estoque para testar as notificações
             var originalQuantity = book.Quantity;
-            book.Quantity = 0; // Primeiro zera o estoque
+            book.Quantity = 0;
             await _context.SaveChangesAsync();
             
-            book.Quantity = originalQuantity; // Depois restaura, o que deve disparar as notificações
+            book.Quantity = originalQuantity;
             await _context.SaveChangesAsync();
             
-            // Call Notify with context to send notifications to subscribed customers
             book.Notify(_context);
 
             return Ok($"Notificação de teste enviada para os inscritos no livro '{book.Title}'.");
