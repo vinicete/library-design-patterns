@@ -12,6 +12,7 @@ namespace Livraria.Data
         public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Bookstore> Bookstores => Set<Bookstore>();
         public DbSet<TransactionHistory> TransactionHistories => Set<TransactionHistory>();
+        public DbSet<BookSubscription> BookSubscriptions => Set<BookSubscription>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

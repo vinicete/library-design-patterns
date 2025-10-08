@@ -1,4 +1,7 @@
 ﻿using Livraria.Contracts;
+using Livraria.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 namespace Livraria.Entities
 {
@@ -19,7 +22,7 @@ namespace Livraria.Entities
                 {
                     _quantity = value;
                     Console.WriteLine($"\n--- O livro '{Title}' voltou ao estoque! Notificando clientes... ---\n");
-                    Notify();
+                    // Note: Notify() will be called from controller with context
                 }
                 else
                 {
@@ -28,16 +31,28 @@ namespace Livraria.Entities
             }
         }
 
-        private List<IObserver> customers;
+        // Navigation property for subscriptions
+        [JsonIgnore]
+        public ICollection<BookSubscription> Subscriptions { get; set; } = new List<BookSubscription>();
 
-        public Book()
-        {
-            customers = new List<IObserver>();
-        }
         public void Notify()
         {
+            // This will be called from the controller with the context
+            Console.WriteLine($"Notificando clientes sobre o livro '{Title}'...");
+        }
 
-            foreach (var customer in customers)
+        public void Notify(LivrariaContext context)
+        {
+            // Get all subscribed customers from database
+            var subscribedCustomers = context.BookSubscriptions
+                .Where(bs => bs.BookId == this.Id)
+                .Include(bs => bs.Customer)
+                .Select(bs => bs.Customer)
+                .ToList();
+
+            Console.WriteLine($"Notificando {subscribedCustomers.Count} clientes sobre o livro '{Title}'...");
+
+            foreach (var customer in subscribedCustomers)
             {
                 customer.Update(this);
             }
@@ -45,12 +60,14 @@ namespace Livraria.Entities
 
         public void Subscribe(IObserver observer)
         {
-            customers.Add(observer);
+            // This method is now handled by the controller
+            // to properly manage database subscriptions
         }
 
         public void Unsubscribe(IObserver observer)
         {
-            customers.Remove(observer);
+            // This method is now handled by the controller
+            // to properly manage database subscriptions
         }
     }
 }
